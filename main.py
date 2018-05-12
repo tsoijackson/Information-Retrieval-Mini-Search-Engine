@@ -1,8 +1,9 @@
-#Search Engine
-
+import bs4
+import os
 import json
 from pprint import pprint
 
+WEBPAGES_PATH = "WEBPAGES_RAW"
 BOOK_KEEPING_PATH = "WEBPAGES_RAW/bookkeeping.json"
 INDEX_PATH = "index.json"
 
@@ -27,22 +28,6 @@ class database():
         file.write("{}")
         file.close()
 
-    def create_token_schema(self, token:str, file:str, score:float) -> str:
-        tf_idf_string = '"tf-idf" : {score}'.format(score=score)
-        score_attributes = [tf_idf_string]
-
-        score_attribute_string = "{"
-        for attribute in score_attributes:
-            score_attribute_string += attribute + ','
-        score_attribute_string += "}"
-
-        file_string = '{' + '"file": {score_attribute_string}'.format(
-            score_attribute_string=score_attribute_string) + '}'
-
-        token_string = '"token": {file_string}'.format(file_string=file_string)
-
-        return token_string
-
     def add_token(self, token:str):
         if token not in self.index:
             self.index[token] = {}
@@ -54,44 +39,33 @@ class database():
         self.index[token][file] = {}
         self.update_index(self.index)
 
+    def add_score(self, token:str, file:str, scoreField:str, score:float):
+        if token not in self.index:
+            self.add_token(token)
+        if file not in self.index[token]:
+            self.add_file(token, file)
+        self.index[token][file][scoreField] = score
+        self.update_index(self.index)
 
+
+def all_webpage_paths():
+    result = []
+    for root, dirs, files in os.walk(WEBPAGES_PATH):
+        for file in files:
+            if "bookkeeping" not in os.path.join(root,file):
+                result.append(os.path.join(root,file).replace('\\', '/'))
+
+    return result
 
 def main():
-    with open(BOOK_KEEPING_PATH) as json_file:
-        data =  json.load(json_file)
+    webpage_paths = all_webpage_paths()
+    print(webpage_paths)
 
-    pprint(data['9/99'])
-
-
-def test_schema():
-    db = database(BOOK_KEEPING_PATH, INDEX_PATH)
-    print(db.create_token_schema('hello', '0/0', 50))
-
-def test_create_index_database():
-    db = database(BOOK_KEEPING_PATH, INDEX_PATH)
-    schema = db.create_token_schema('hello', '0/0', 50)
-    print(schema)
-    f = open("index.json", "w")
-    f.write(schema)
-
-def test_add_token():
-    db = database(BOOK_KEEPING_PATH, INDEX_PATH)
-    db.add_token('hello')
-    db.add_token('world')
-
-def test_add_file():
+def test_database():
     db = database(BOOK_KEEPING_PATH, INDEX_PATH)
     db.add_file('hello', '0/0')
-    db.add_file('fish', '0/0')
-
-def test_contains_token():
-    db = database(BOOK_KEEPING_PATH, INDEX_PATH)
-    print(db.contains_token('hello'))
-    print(db.contains_token('hello world'))
+    db.add_score('world', '1/1', 'idf', 5)
 
 if __name__ == '__main__':
-    # main()
-    # test_create_index_database()
-    test_add_token()
-    test_add_file()
-    # test_contains_token()
+    main()
+    # test_database()
