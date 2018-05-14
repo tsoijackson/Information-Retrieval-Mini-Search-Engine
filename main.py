@@ -11,6 +11,7 @@ BOOK_KEEPING_PATH = "WEBPAGES_RAW/bookkeeping.json"
 INDEX_PATH = "index.json"
 
 class Database():
+    __slots__ = ('bookkeeping_path', 'index_path', 'index')
     def __init__(self, bookkeeping_path:str, index_path: str):
         self.bookkeeping_path = bookkeeping_path
         self.index_path = index_path
@@ -25,22 +26,21 @@ class Database():
         file.write("{}")
         file.close()
 
-    def update_index(self, json_data:dict):
-        self.index = json_data
+    def update_index(self):
         file = open(self.index_path, 'w')
-        json.dump(json_data, file, sort_keys=True, indent=4)
+        json.dump(self.index, file, sort_keys=True, indent=4)
         file.close()
 
     def add_token(self, token:str):
         if token not in self.index:
             self.index[token] = {}
-        self.update_index(self.index)
+        # self.update_index()
 
     def add_file(self, token:str, file:str):
         if token not in self.index:
             self.add_token(token)
         self.index[token][file] = {}
-        self.update_index(self.index)
+        # self.update_index()
 
     def add_score(self, token:str, file:str, scoreField:str, score:float):
         if token not in self.index:
@@ -48,18 +48,16 @@ class Database():
         if file not in self.index[token]:
             self.add_file(token, file)
         self.index[token][file][scoreField] = score
-        self.update_index(self.index)
+        # self.update_index(self.index)
 
     def add_all_files_from_text(self, file:str, text_set:{str}):
         print(file, text_set)
         for token in text_set:
             self.add_file(token, file)
 
-    def add_all_scores_from_text(self, token:str, file:str, scoreField:str, score:float, text_set:{str}):
-        pass
-
 
 class Parser():
+    __slots__ = ('soup')
     def __init__(self, html:str):
         self.soup = bs4.BeautifulSoup(html, 'lxml') #lxml, html.parser
 
@@ -78,6 +76,7 @@ class Parser():
         text = re.sub('if[ ]?[(][^)]*[)]', '', text)  # removes code if ()
         text = re.sub('[^ ]* = function[(][)] {.*}', '', text)  # removes code function = ()
         text = re.sub('var [^ ]* = [^(]*[(][^)]*[)]', '', text)  # removes code car = ()
+        text = re.sub('[\\].*[\\]["]', '', text) # removes code \  \"
         text = re.sub(' +', ' ', text)  # removes multiple spaces
         return text
 
@@ -100,6 +99,7 @@ class Parser():
         return self.soup.get_text()
 
 class Tokenizer():
+    __slots__ = ('text', 'text_list', 'text_set')
     def __init__(self, text:str):
         self.text = text
         self.text_list = self.tokenize()
@@ -150,7 +150,7 @@ def main():
     webpage_paths = all_webpage_paths()
     print(webpage_paths)
 
-    webpage_paths = webpage_paths[:5] #EDIT HOW MANY PATHS WANTED/COMMENT OUT IF RUNNING ALL FILES
+    webpage_paths = webpage_paths[:500] #EDIT HOW MANY PATHS WANTED/COMMENT OUT IF RUNNING ALL FILES
     for path in webpage_paths:
         print('PATH:', path)
         file = open(path, 'r', encoding='utf-8')
@@ -170,13 +170,18 @@ def main():
         parser = Parser(file.read())
         file.close()
 
+
         webpage_text = parser.process_text(parser.all_text())
         tokenizer = Tokenizer(webpage_text)
 
+        start = time()
         for token in tokenizer.text_set:
             tf_idf = tfidf(token, tokenizer.text_list, len(webpage_paths), documents_containing_token(token, index.index))
             index.add_score(token, path, 'tf-idf', tf_idf)
 
+        print('adding score for', path, ':', time() - start)
+
+    index.update_index()
 
 
 def test_database():
@@ -191,6 +196,6 @@ def clear_index():
 
 if __name__ == '__main__':
     start  = time()
-    # main()
-    clear_index()
+    main()
+    # clear_index()
     print("Total Runtime:", time() - start)
