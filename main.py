@@ -3,6 +3,8 @@ import re
 import os
 import json
 from pprint import pprint
+import math
+from time import time
 
 WEBPAGES_PATH = "WEBPAGES_RAW"
 BOOK_KEEPING_PATH = "WEBPAGES_RAW/bookkeeping.json"
@@ -48,16 +50,35 @@ class Database():
         self.index[token][file][scoreField] = score
         self.update_index(self.index)
 
+    def add_all_files_from_text(self, file:str, text_set:{str}):
+        print(file, text_set)
+        for token in text_set:
+            self.add_file(token, file)
+
+    def add_all_scores_from_text(self, token:str, file:str, scoreField:str, score:float, text_set:{str}):
+        pass
+
 
 class Parser():
     def __init__(self, html:str):
-        self.soup = bs4.BeautifulSoup(html, 'html.parser')
+        self.soup = bs4.BeautifulSoup(html, 'lxml') #lxml, html.parser
 
     def process_text(self, text:str) -> str:
-        items = ['\n', '\t', '|', '.', ',']
+        items = ['\n', '\t', '|', '.', ',', ':', ';']
         for i in items:
             text = text.replace(i, ' ')
-        text = re.sub(' +',' ',text) #removes multiple spaces
+        text = self.remove_html_code(text)
+        text = text.lower() #lowercase all text
+        return text
+
+    # Some of the unstructure html will contain coding segments which
+    # need to be removed as much as possible from the text
+    def remove_html_code(self, text:str) -> str:
+        text = re.sub('#.*{.*}', '', text)  # removes css header
+        text = re.sub('if[ ]?[(][^)]*[)]', '', text)  # removes code if ()
+        text = re.sub('[^ ]* = function[(][)] {.*}', '', text)  # removes code function = ()
+        text = re.sub('var [^ ]* = [^(]*[(][^)]*[)]', '', text)  # removes code car = ()
+        text = re.sub(' +', ' ', text)  # removes multiple spaces
         return text
 
     def all_title_text(self) -> str:
@@ -75,30 +96,40 @@ class Parser():
                 result += header.string + ' '
         return result
 
-    def all_paragraph_text(self) -> str:
-        result = ""
-        for paragraph in self.soup.find_all('p'):
-            print(type(paragraph))
-            print(paragraph)
-            # result += paragraph.string
-        print(self.soup.get_text())
-        return result
-
-    def all_div_text(self):
-        print('=================================')
-        # result = ""
-        # for div in self.soup.find_all('BR'):
-        #     if div.string != None:
-        #         result += div.string + ' '
-        # return result
+    def all_text(self):
         return self.soup.get_text()
 
 class Tokenizer():
-    def __init__(self):
-        pass
+    def __init__(self, text:str):
+        self.text = text
+        self.text_list = self.tokenize()
+        self.text_set = set(self.text_list)
 
-    def tokenize_text(self, text:str):
-        pass
+    def tokenize(self) -> [str]:
+        text_list = self.text.split(' ')
+        for text in text_list:
+            if not text.isalnum():
+                text_list.remove(text)
+        return text_list
+
+
+
+def tf(token: str, text_list: [str]) -> float:
+    frequency = 0
+    for text in text_list:
+        if token == text:
+            frequency += 1
+    return frequency / len(text_list)
+
+def documents_containing_token(token:str, database: Database) -> int:
+    return len(database[token])
+
+def idf(total_documents:int, documents_containing_token:int) -> float:
+    return math.log(total_documents / (1 + documents_containing_token))
+
+def tfidf(token:str, text_list: [str], total_docments:int, documents_containing_token:int) -> float:
+    return tf(token,text_list) * idf(total_docments,documents_containing_token)
+
 
 def all_webpage_paths() -> [str]:
     result = []
@@ -114,33 +145,52 @@ def webpage_paths_sorting_key(s: str):
     return (int(file[1]), int(file[2]))
 
 def main():
+    index = Database(BOOK_KEEPING_PATH, INDEX_PATH) #initialize inversed index
+
     webpage_paths = all_webpage_paths()
     print(webpage_paths)
 
-    for path in webpage_paths[:5]:
-        file = open(path, 'r', encoding='utf-8')
+    webpage_paths = webpage_paths[:5] #EDIT HOW MANY PATHS WANTED/COMMENT OUT IF RUNNING ALL FILES
+    for path in webpage_paths:
         print('PATH:', path)
-        # html_text = file.read()
-        # soup = bs4.BeautifulSoup(html_text, 'html.parser')
-        # titles = soup.find_all('title')
-        # print(titles)
-        # paragraphs = soup.get_text().replace('\n'," ")
-        # print(paragraphs)
+        file = open(path, 'r', encoding='utf-8')
         parser = Parser(file.read())
         file.close()
 
-        print(parser.all_title_text())
-        print(parser.all_header_text())
-        print(parser.process_text(parser.all_div_text()))
-        # print(text)
+        webpage_text = parser.process_text(parser.all_text())
+        # print(webpage_text)
+        tokenizer = Tokenizer(webpage_text)
+        # print(tokenizer.text_list)
+        # print(len(tokenizer.text_list), len(tokenizer.text_set))
 
-    print("end")
+        index.add_all_files_from_text(path, tokenizer.text_set)
+
+    for path in webpage_paths:
+        file = open(path, 'r', encoding='utf-8')
+        parser = Parser(file.read())
+        file.close()
+
+        webpage_text = parser.process_text(parser.all_text())
+        tokenizer = Tokenizer(webpage_text)
+
+        for token in tokenizer.text_set:
+            tf_idf = tfidf(token, tokenizer.text_list, len(webpage_paths), documents_containing_token(token, index.index))
+            index.add_score(token, path, 'tf-idf', tf_idf)
+
+
 
 def test_database():
     db = Database(BOOK_KEEPING_PATH, INDEX_PATH)
     db.add_file('hello', '0/0')
     db.add_score('world', '1/1', 'idf', 5)
 
+#Use this to MANUALLY CLEAR INDEX.JSON when experimenting
+def clear_index():
+    db = Database(BOOK_KEEPING_PATH, INDEX_PATH)
+    db.clear_index()
+
 if __name__ == '__main__':
-    main()
-    # test_database()
+    start  = time()
+    # main()
+    clear_index()
+    print("Total Runtime:", time() - start)
