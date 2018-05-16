@@ -83,11 +83,13 @@ class Parser():
     # Some of the unstructure html will contain coding segments which
     # need to be removed as much as possible from the text
     def remove_html_code(self, text:str) -> str:
-        text = re.sub('#.*{.*}', '', text)  # removes css header
-        text = re.sub('if[ ]?[(][^)]*[)]', '', text)  # removes code if ()
-        text = re.sub('[^ ]* = function[(][)] {.*}', '', text)  # removes code function = ()
-        text = re.sub('var [^ ]* = [^(]*[(][^)]*[)]', '', text)  # removes code car = ()
-        text = re.sub('[\\].*[\\]["]', '', text) # removes code \  \"
+        text = re.sub('#.*{.*}', ' ', text)  # removes css header
+        text = re.sub('if[ ]?[(][^)]*[)]', ' ', text)  # removes code if ()
+        text = re.sub('[^ ]* = function[(][)] {.*}', ' ', text)  # removes code function = ()
+        text = re.sub('function[ ][^(]*[(][)][ ]?{[^}]*}', ' ', text) # removes code function () { }
+        text = re.sub('var [^ ]* = [^(]*[(][^)]*[)]', ' ', text)  # removes code car = ()
+        text = re.sub('[\\].*[\\]["]', ' ', text) # removes code \  \"
+        text = re.sub('catch[(]e[)][ ]?{[^}]*}', ' ', text) # remvoes code catch(e) {}
         text = re.sub(' +', ' ', text)  # removes multiple spaces
         return text
 
@@ -115,6 +117,8 @@ class Tokenizer():
         self.text = text
         self.text_list = self.tokenize()
         self.text_set = set(self.text_list)
+        if "" in self.text_set:
+            self.text_set.remove("")
 
     def tokenize(self) -> [str]:
         text_list = self.text.split(' ')
@@ -134,7 +138,7 @@ def token_frequency_in_document(token:str, text_list: [str]) -> int:
 def tf(token_frequency:int, text_list_length:int) -> float:
     return token_frequency / text_list_length
 
-def documents_containing_token(token:str, database: Database) -> int:
+def documents_containing_token(token:str, database: Database.index) -> int:
     return len(database[token])
 
 def idf(total_documents:int, documents_containing_token:int) -> float:
@@ -157,18 +161,41 @@ def webpage_paths_sorting_key(s: str):
     file = s.split('/')
     return (int(file[1]), int(file[2]))
 
+def is_text_html_structured(text:str) -> bool:
+    html_tags = ["html", "body", "link", "title"]
+    lower_text = text.lower()
+    for tag in html_tags:
+        if tag in lower_text:
+            return True
+    return False
+
+def pages_to_ignore() -> set:
+    result = set()
+    ignore = ['0/0','39/373']
+    for page in ignore:
+        page = "WEBPAGES_RAW/" + page
+        result.add(page)
+    return result
+
 def main():
+    clear_index()
+
     index = Database(BOOK_KEEPING_PATH, INDEX_PATH) #initialize inversed index
 
     webpage_paths = all_webpage_paths()
     print(webpage_paths)
 
-    webpage_paths = webpage_paths[:500] #EDIT HOW MANY PATHS WANTED/COMMENT OUT IF RUNNING ALL FILES
+    webpage_paths = webpage_paths[:400] #EDIT HOW MANY PATHS WANTED/COMMENT OUT IF RUNNING ALL FILES
     TOTAL_DOCUMENTS = len(webpage_paths)
     for path in webpage_paths:
+
+        if path in pages_to_ignore():
+            continue
+
         print('PATH:', path)
         file = open(path, 'r', encoding='utf-8')
-        parser = Parser(file.read())
+        file_text = file.read()
+        parser = Parser(file_text)
         file.close()
 
         webpage_text = parser.process_text(parser.all_text())
@@ -184,21 +211,18 @@ def main():
             index.add_frequency(token, path, frequency)
             index.add_length(token, path, len(tokenizer.text_list))
 
-    # start = time()
+    start = time()
     for token in index.index:
         for file in index.index[token]:
-            tf_idf = tfidf(index.index[token][file]['frequency'], index.index[token][file]['length'], len(webpage_paths), documents_containing_token(token, index.index))
+            tf_idf = tfidf(index.index[token][file]['frequency'], index.index[token][file]['length'],
+                           total_docments=len(webpage_paths),
+                           documents_containing_token=documents_containing_token(token, index.index))
             index.add_score(token, file, 'tf-idf', tf_idf)
-    # print('adding score for', path, ':', time() - start)
+    print('adding score :', time() - start)
 
     index.update_index()
     print('total documents:', TOTAL_DOCUMENTS)
 
-
-def test_database():
-    db = Database(BOOK_KEEPING_PATH, INDEX_PATH)
-    db.add_file('hello', '0/0')
-    db.add_score('world', '1/1', 'idf', 5)
 
 #Use this to MANUALLY CLEAR INDEX.JSON when experimenting
 def clear_index():
