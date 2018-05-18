@@ -29,7 +29,7 @@ class Database():
 
     def update_index(self):
         file = open(self.index_path, 'w')
-        json.dump(self.index, file, sort_keys=True, indent=4)
+        file.write(IndexFormatter(self.index).dumps())
         file.close()
 
     def add_token(self, token:str):
@@ -75,6 +75,39 @@ class Database():
         if file not in self.index[token]:
             self.add_file(token, file)
         self.index[token][file][scoreField] = score
+
+#Code that Formats the Index into a String Form
+class IndexFormatter():
+    def __init__(self, object: dict):
+        self.object = object
+
+    def dumps(self):
+        result = "{\n"
+        token_dict = sorted(self.object)
+        for token in token_dict:
+            result += '\t"' + token + '": {\n'
+            path_dict = sorted(self.object[token], key=webpage_paths_sorting_key)
+            for path in path_dict:
+                result += '\t\t"' + path + '": { '
+                attribute_dict = sorted(self.object[token][path])
+                for attribute in attribute_dict:
+                    result += '"' + attribute + '": ' + str(self.object[token][path][attribute])
+                    if attribute != attribute_dict[-1]: result += ', '
+                if path != path_dict[-1]: result += ' },\n'
+                else: result += ' }\n'
+            if token != token_dict[-1]: result += '\t},\n'
+            else: result += '\t}\n'
+        result += "}"
+        return result
+
+class IndexEncoder(json.JSONEncoder):
+    def default(self, obj):
+        print('indexEncoder !!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+        if isinstance(obj, dict):
+            print('passed through!')
+            return json.dumps('')
+        else:
+            return json.dumps(obj)
 
 
 class Parser():
@@ -192,7 +225,7 @@ def main():
 
     #webpage_paths = webpage_paths[:400] #EDIT HOW MANY PATHS WANTED/COMMENT OUT IF RUNNING ALL FILES
     TOTAL_DOCUMENTS = len(webpage_paths)
-    for path in webpage_paths[:500]: #6:15
+    for path in webpage_paths: #6:15
 
         if path in pages_to_ignore():
             continue
@@ -206,7 +239,7 @@ def main():
         webpage_text = parser.process_text(parser.all_text())
         title_text = parser.process_text(parser.all_title_text())
 
-        print(parser.all_text())
+        # print(parser.all_text())
 
         tokenizer = Tokenizer(webpage_text)
         title_tokenizer = Tokenizer(title_text)
