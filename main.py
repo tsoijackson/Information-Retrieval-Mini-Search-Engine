@@ -48,6 +48,20 @@ class Database():
             self.add_file(token, file)
         self.index[token][file]['frequency'] = frequency
 
+    def add_title_frequency(self, token:str, file:str, frequency:int):
+        if token not in self.index:
+            self.add_token(token)
+        if file not in self.index[token]:
+            self.add_file(token, file)
+        self.index[token][file]['title_frequency'] = frequency
+
+    def add_title_length(self, token:str, file:str, length: int):
+        if token not in self.index:
+            self.add_token(token)
+        if file not in self.index[token]:
+            self.add_file(token, file)
+        self.index[token][file]['title_length'] = length
+
     def add_length(self, token:str, file:str, length:int):
         if token not in self.index:
             self.add_token(token)
@@ -62,43 +76,41 @@ class Database():
             self.add_file(token, file)
         self.index[token][file][scoreField] = score
 
-    def add_all_files_from_text(self, file:str, text_set:{str}):
-        print(file, text_set)
-        for token in text_set:
-            self.add_file(token, file)
-
 
 class Parser():
     __slots__ = ('soup')
     def __init__(self, html:str):
         self.soup = bs4.BeautifulSoup(html, 'lxml') #lxml, html.parser
 
+        #removes tags from the parser
+        for tag in self.soup(['script', 'style']):
+            tag.decompose()
+
     def process_text(self, text:str) -> str:
         items = ['\n', '\t', '|', '.', ',', ':', ';']
         for i in items:
             text = text.replace(i, ' ')
+        text = re.sub(' +', ' ', text)  # removes multiple spaces
         text = self.remove_html_code(text)
-        text = text.lower() #lowercase all text
         return text
 
     # Some of the unstructure html will contain coding segments which
     # need to be removed as much as possible from the text
     def remove_html_code(self, text:str) -> str:
-        text = re.sub('#.*{.*}', ' ', text)  # removes css header
-        text = re.sub('if[ ]?[(][^)]*[)]', ' ', text)  # removes code if ()
-        text = re.sub('[^ ]* = function[(][)] {.*}', ' ', text)  # removes code function = ()
-        text = re.sub('function[ ][^(]*[(][)][ ]?{[^}]*}', ' ', text) # removes code function () { }
-        text = re.sub('var [^ ]* = [^(]*[(][^)]*[)]', ' ', text)  # removes code var = ()
-        text = re.sub('[\\].*[\\]["]', ' ', text) # removes code \  \"
-        text = re.sub('catch[(]e[)][ ]?{[^}]*}', ' ', text) # remvoes code catch(e) {}
-        text = re.sub(' +', ' ', text)  # removes multiple spaces
+        # text = re.sub('#[^{]*{[^}]*}', ' ', text)  # removes css header
+        # text = re.sub('if[ ]?[(][^)]*[)]', ' ', text)  # removes code if ()
+        # text = re.sub('[^ ]* = function[(][)] {.*}', ' ', text)  # removes code function = ()
+        # text = re.sub('function[ ][^(]*[(][)][ ]?{[^}]*}', ' ', text) # removes code function () { }
+        # text = re.sub('var [^ ]* = [^(]*[(][^)]*[)]', ' ', text)  # removes code var = ()
+        # text = re.sub('[\\].*[\\]["]', ' ', text) # removes code \  \"
+        # text = re.sub('catch[(]e[)][ ]?{[^}]*}', ' ', text) # remvoes code catch(e) {}
         return text
 
     def all_title_text(self) -> str:
-        print('---title----')
         result = ""
         for title in self.soup.find_all('title'):
-            result += title.string + ' '
+            if title.string != None:
+                result += title.string + ' '
         return result
 
     def all_header_text(self) -> str:
@@ -180,7 +192,7 @@ def main():
 
     #webpage_paths = webpage_paths[:400] #EDIT HOW MANY PATHS WANTED/COMMENT OUT IF RUNNING ALL FILES
     TOTAL_DOCUMENTS = len(webpage_paths)
-    for path in webpage_paths:
+    for path in webpage_paths[:500]: #6:15
 
         if path in pages_to_ignore():
             continue
@@ -192,14 +204,23 @@ def main():
         file.close()
 
         webpage_text = parser.process_text(parser.all_text())
+        title_text = parser.process_text(parser.all_title_text())
+
+        print(parser.all_text())
+
         tokenizer = Tokenizer(webpage_text)
+        title_tokenizer = Tokenizer(title_text)
 
-
-        for token in tokenizer.text_set:
+        for token in tokenizer.text_set_lower:
             index.add_file(token, path)
-            frequency = token_frequency_in_document(token, tokenizer.text_list)
-            index.add_frequency(token, path, frequency)
-            index.add_length(token, path, len(tokenizer.text_list))
+            text_frequency = token_frequency_in_document(token, tokenizer.text_list_lower)
+            title_frequency = token_frequency_in_document(token, title_tokenizer.text_list_lower)
+
+            index.add_frequency(token, path, text_frequency)
+            index.add_title_frequency(token, path, title_frequency)
+
+            index.add_length(token, path, len(tokenizer.text_list_lower))
+            index.add_title_length(token, path, len(title_tokenizer.text_list_lower))
 
     start = time()
     for token in index.index:
@@ -212,6 +233,7 @@ def main():
 
     index.update_index()
     print('total documents:', TOTAL_DOCUMENTS)
+    print(len(index.index))
 
 
 #Use this to MANUALLY CLEAR INDEX.JSON when experimenting
