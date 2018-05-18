@@ -10,6 +10,7 @@ WEBPAGES_PATH = "WEBPAGES_RAW"
 BOOK_KEEPING_PATH = "WEBPAGES_RAW/bookkeeping.json"
 INDEX_PATH = "index.json"
 
+# class that defines the json "db" and its functions
 class Database():
     __slots__ = ('bookkeeping_path', 'index_path', 'index')
     def __init__(self, bookkeeping_path:str, index_path: str):
@@ -46,6 +47,27 @@ class Database():
         if file not in self.index[token]:
             self.add_file(token, file)
         self.index[token][file]['frequency'] = frequency
+
+    # KEVIN ADDED FUNCTION
+    def add_occurences_temp(self, token:str, file:str, indices_info:list):
+        # iterating through the list of lines
+        line_count = 0
+        offset_count = 0
+        for line in indices_info:
+            line_count += 1
+            line = line.lower()
+            if token in line:
+                offset_count = 0
+                for word in line.split().strip('\n'):
+                    offset_count += 1
+                    if token == word:
+                        break
+        if token not in self.index:
+            self.add_token(token)
+        if file not in self.index[token]:
+            self.add_file(token, file)
+        self.index[token][file]['position'] = (line_count, offset_count)
+
 
     def add_length(self, token:str, file:str, length:int):
         if token not in self.index:
@@ -147,7 +169,6 @@ def idf(total_documents:int, documents_containing_token:int) -> float:
 def tfidf(token_frequency:int, text_list_length: int, total_docments:int, documents_containing_token:int) -> float:
     return tf(token_frequency,text_list_length) * idf(total_docments,documents_containing_token)
 
-
 def all_webpage_paths() -> [str]:
     result = []
     for root, dirs, files in os.walk(WEBPAGES_PATH):
@@ -183,9 +204,7 @@ def main():
     index = Database(BOOK_KEEPING_PATH, INDEX_PATH) #initialize inversed index
 
     webpage_paths = all_webpage_paths()
-    print(webpage_paths)
-
-    #webpage_paths = webpage_paths[:400] #EDIT HOW MANY PATHS WANTED/COMMENT OUT IF RUNNING ALL FILES
+    webpage_paths = webpage_paths[:400] #EDIT HOW MANY PATHS WANTED/COMMENT OUT IF RUNNING ALL FILES
     TOTAL_DOCUMENTS = len(webpage_paths)
     for path in webpage_paths:
 
@@ -195,19 +214,20 @@ def main():
         print('PATH:', path)
         file = open(path, 'r', encoding='utf-8')
         file_text = file.read()
+        indices_info = file.readlines()
+        print(indices_info)
         parser = Parser(file_text)
         file.close()
 
         webpage_text = parser.process_text(parser.all_text())
-        # print(webpage_text)
         tokenizer = Tokenizer(webpage_text)
         # print(tokenizer.text_list)
         # print(len(tokenizer.text_list), len(tokenizer.text_set))
 
-
         for token in tokenizer.text_set:
             index.add_file(token, path)
             frequency = token_frequency_in_document(token, tokenizer.text_list)
+            index.add_occurences_temp(token, path, indices_info)
             index.add_frequency(token, path, frequency)
             index.add_length(token, path, len(tokenizer.text_list))
 
@@ -231,6 +251,6 @@ def clear_index():
 
 if __name__ == '__main__':
     start  = time()
+    clear_index()
     main()
-    # clear_index()
     print("Total Runtime:", time() - start)
