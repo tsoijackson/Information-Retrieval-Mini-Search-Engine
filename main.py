@@ -1,4 +1,5 @@
 import bs4
+from nltk.tokenize import RegexpTokenizer
 import re
 import os
 import json
@@ -87,7 +88,7 @@ class Parser():
         text = re.sub('if[ ]?[(][^)]*[)]', ' ', text)  # removes code if ()
         text = re.sub('[^ ]* = function[(][)] {.*}', ' ', text)  # removes code function = ()
         text = re.sub('function[ ][^(]*[(][)][ ]?{[^}]*}', ' ', text) # removes code function () { }
-        text = re.sub('var [^ ]* = [^(]*[(][^)]*[)]', ' ', text)  # removes code car = ()
+        text = re.sub('var [^ ]* = [^(]*[(][^)]*[)]', ' ', text)  # removes code var = ()
         text = re.sub('[\\].*[\\]["]', ' ', text) # removes code \  \"
         text = re.sub('catch[(]e[)][ ]?{[^}]*}', ' ', text) # remvoes code catch(e) {}
         text = re.sub(' +', ' ', text)  # removes multiple spaces
@@ -112,20 +113,20 @@ class Parser():
         return self.soup.get_text()
 
 class Tokenizer():
-    __slots__ = ('text', 'text_list', 'text_set')
+    __slots__ = ('text', 'text_list', 'text_list_lower', 'text_set', 'text_set_lower')
     def __init__(self, text:str):
         self.text = text
         self.text_list = self.tokenize()
+        self.text_list_lower = self.tokenize_lower()
         self.text_set = set(self.text_list)
-        if "" in self.text_set:
-            self.text_set.remove("")
+        self.text_set_lower = set(self.text_list_lower)
 
     def tokenize(self) -> [str]:
-        text_list = self.text.split(' ')
-        for text in text_list:
-            if not text.isalnum():
-                text_list.remove(text)
-        return text_list
+        return RegexpTokenizer(r'\w+').tokenize(self.text)
+
+    def tokenize_lower(self) -> [str]:
+        return [token.lower() for token in RegexpTokenizer(r'\w+').tokenize(self.text)]
+
 
 
 def token_frequency_in_document(token:str, text_list: [str]) -> int:
@@ -161,17 +162,9 @@ def webpage_paths_sorting_key(s: str):
     file = s.split('/')
     return (int(file[1]), int(file[2]))
 
-def is_text_html_structured(text:str) -> bool:
-    html_tags = ["html", "body", "link", "title"]
-    lower_text = text.lower()
-    for tag in html_tags:
-        if tag in lower_text:
-            return True
-    return False
-
 def pages_to_ignore() -> set:
     result = set()
-    ignore = ['0/0','39/373']
+    ignore = ['0/0', '0/438', '39/373']
     for page in ignore:
         page = "WEBPAGES_RAW/" + page
         result.add(page)
@@ -199,10 +192,7 @@ def main():
         file.close()
 
         webpage_text = parser.process_text(parser.all_text())
-        # print(webpage_text)
         tokenizer = Tokenizer(webpage_text)
-        # print(tokenizer.text_list)
-        # print(len(tokenizer.text_list), len(tokenizer.text_set))
 
 
         for token in tokenizer.text_set:
@@ -232,5 +222,4 @@ def clear_index():
 if __name__ == '__main__':
     start  = time()
     main()
-    # clear_index()
     print("Total Runtime:", time() - start)
