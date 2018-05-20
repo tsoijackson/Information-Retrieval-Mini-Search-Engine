@@ -49,6 +49,20 @@ class Database():
             self.add_file(token, file)
         self.index[token][file]['frequency'] = frequency
 
+    def add_title_frequency(self, token:str, file:str, frequency:int):
+        if token not in self.index:
+            self.add_token(token)
+        if file not in self.index[token]:
+            self.add_file(token, file)
+        self.index[token][file]['title_frequency'] = frequency
+
+    def add_title_length(self, token:str, file:str, length: int):
+        if token not in self.index:
+            self.add_token(token)
+        if file not in self.index[token]:
+            self.add_file(token, file)
+        self.index[token][file]['title_length'] = length
+
     def add_length(self, token:str, file:str, length:int):
         if token not in self.index:
             self.add_token(token)
@@ -155,6 +169,13 @@ class Tokenizer():
 
     def tokenize(self) -> [str]:
         return RegexpTokenizer(r'\w+').tokenize(self.text)
+<<<<<<< HEAD
+=======
+
+    def tokenize_lower(self) -> [str]:
+        return [token.lower() for token in RegexpTokenizer(r'\w+').tokenize(self.text)]
+
+>>>>>>> refs/remotes/origin/master
 
     def tokenize_lower(self) -> [str]:
         return [token.lower() for token in RegexpTokenizer(r'\w+').tokenize(self.text)]
@@ -221,6 +242,7 @@ def main():
         file.close()
 
         webpage_text = parser.process_text(parser.all_text())
+<<<<<<< HEAD
         tokenizer = Tokenizer(webpage_text)
         # print(tokenizer.text_list)
         # print(len(tokenizer.text_list), len(tokenizer.text_set))
@@ -231,6 +253,25 @@ def main():
             index.add_occurences_temp(token, path, indices_info)
             index.add_frequency(token, path, frequency)
             index.add_length(token, path, len(tokenizer.text_list))
+=======
+        title_text = parser.process_text(parser.all_title_text())
+
+        # print(parser.all_text())
+
+        tokenizer = Tokenizer(webpage_text)
+        title_tokenizer = Tokenizer(title_text)
+
+        for token in tokenizer.text_set_lower:
+            index.add_file(token, path)
+            text_frequency = token_frequency_in_document(token, tokenizer.text_list_lower)
+            title_frequency = token_frequency_in_document(token, title_tokenizer.text_list_lower)
+
+            index.add_frequency(token, path, text_frequency)
+            index.add_title_frequency(token, path, title_frequency)
+
+            index.add_length(token, path, len(tokenizer.text_list_lower))
+            index.add_title_length(token, path, len(title_tokenizer.text_list_lower))
+>>>>>>> refs/remotes/origin/master
 
         title_text = parser.process_text(parser.all_title_text())
 
