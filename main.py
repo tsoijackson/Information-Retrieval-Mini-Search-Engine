@@ -48,7 +48,7 @@ class Database():
             self.add_file(token, file)
         self.index[token][file]['frequency'] = frequency
 
-    # KEVIN ADDED FUNCTION
+    # record the number of occurences of a token in the original html
     def add_occurences_temp(self, token:str, file:str, indices_info:list):
         # iterating through the list of lines
         line_count = 0
@@ -149,6 +149,9 @@ class Tokenizer():
                 text_list.remove(text)
         return text_list
 
+class LanguageModifier():
+
+
 
 def token_frequency_in_document(token:str, text_list: [str]) -> int:
     frequency = 0
@@ -211,23 +214,19 @@ def main():
         if path in pages_to_ignore():
             continue
 
-        print('PATH:', path)
         file = open(path, 'r', encoding='utf-8')
         file_text = file.read()
         indices_info = file.readlines()
-        print(indices_info)
         parser = Parser(file_text)
         file.close()
 
         webpage_text = parser.process_text(parser.all_text())
         tokenizer = Tokenizer(webpage_text)
-        # print(tokenizer.text_list)
-        # print(len(tokenizer.text_list), len(tokenizer.text_set))
 
         for token in tokenizer.text_set:
             index.add_file(token, path)
             frequency = token_frequency_in_document(token, tokenizer.text_list)
-            index.add_occurences_temp(token, path, indices_info)
+            index.ocurrences_temp(token, path, indices_info)
             index.add_frequency(token, path, frequency)
             index.add_length(token, path, len(tokenizer.text_list))
 
