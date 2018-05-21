@@ -256,21 +256,6 @@ def main():
         title_text = parser.process_text(parser.all_title_text())
 
         # print(parser.all_text())
-
-        tokenizer = Tokenizer(webpage_text)
-        title_tokenizer = Tokenizer(title_text)
-
-        for token in tokenizer.text_set_lower:
-            index.add_file(token, path)
-            text_frequency = token_frequency_in_document(token, tokenizer.text_list_lower)
-            title_frequency = token_frequency_in_document(token, title_tokenizer.text_list_lower)
-
-            index.add_frequency(token, path, text_frequency)
-            index.add_title_frequency(token, path, title_frequency)
-
-            index.add_length(token, path, len(tokenizer.text_list_lower))
-            index.add_title_length(token, path, len(title_tokenizer.text_list_lower))
-
     start = time()
     for token in index.index:
         for file in index.index[token]:
