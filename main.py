@@ -148,11 +148,7 @@ class Tokenizer():
             if not text.isalnum():
                 text_list.remove(text)
         return text_list
-
-class LanguageModifier():
-
-
-
+        
 def token_frequency_in_document(token:str, text_list: [str]) -> int:
     frequency = 0
     for text in text_list:
