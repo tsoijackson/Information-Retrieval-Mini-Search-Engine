@@ -76,8 +76,8 @@ class Database():
         if file not in self.index[token]:
             self.add_file(token, file)
         self.index[token][file][scoreField] = score
-        
-    # record the number of occurences of a token in the original html
+
+    # record the number of occurences of a token in its original html
     def add_occurences_temp(self, token:str, file:str, indices_info:list):
         # iterating through the list of lines
         line_count = 0
@@ -118,14 +118,12 @@ class IndexFormatter():
 
 class IndexEncoder(json.JSONEncoder):
     def default(self, obj):
-        print('indexEncoder !!!!!!!!!!!!!!!!!!!!!!!!!!!!')
         if isinstance(obj, dict):
-            print('passed through!')
             return json.dumps('')
         else:
             return json.dumps(obj)
 
-
+# class in charge of parsing the data using beautiful soup
 class Parser():
     __slots__ = ('soup')
     def __init__(self, html:str):
@@ -213,7 +211,6 @@ def all_webpage_paths() -> [str]:
         for file in files:
             if "bookkeeping" not in os.path.join(root,file):
                 result.append(os.path.join(root,file).replace('\\', '/'))
-
     return sorted(result, key=webpage_paths_sorting_key)
 
 def webpage_paths_sorting_key(s: str):
@@ -271,20 +268,6 @@ def main():
         title_text = parser.process_text(parser.all_title_text())
 
         # print(parser.all_text())
-
-        tokenizer = Tokenizer(webpage_text)
-        title_tokenizer = Tokenizer(title_text)
-
-        for token in tokenizer.text_set_lower:
-            index.add_file(token, path)
-            text_frequency = token_frequency_in_document(token, tokenizer.text_list_lower)
-            title_frequency = token_frequency_in_document(token, title_tokenizer.text_list_lower)
-
-            index.add_frequency(token, path, text_frequency)
-            index.add_title_frequency(token, path, title_frequency)
-
-            index.add_length(token, path, len(tokenizer.text_list_lower))
-            index.add_title_length(token, path, len(title_tokenizer.text_list_lower))
 
     start = time()
     for token in index.index:
