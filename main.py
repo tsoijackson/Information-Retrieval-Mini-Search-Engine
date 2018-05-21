@@ -76,6 +76,21 @@ class Database():
         if file not in self.index[token]:
             self.add_file(token, file)
         self.index[token][file][scoreField] = score
+        
+    # record the number of occurences of a token in the original html
+    def add_occurences_temp(self, token:str, file:str, indices_info:list):
+        # iterating through the list of lines
+        line_count = 0
+        offset_count = 0
+        for line in indices_info:
+            line_count += 1
+            line = line.lower()
+            if token in line:
+                offset_count = 0
+                for word in line.split().strip('\n'):
+                    offset_count += 1
+                    if token == word:
+                        break
 
 #Code that Formats the Index into a String Form
 class IndexFormatter():
