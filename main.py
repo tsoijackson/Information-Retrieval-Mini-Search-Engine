@@ -169,13 +169,6 @@ class Tokenizer():
 
     def tokenize(self) -> [str]:
         return RegexpTokenizer(r'\w+').tokenize(self.text)
-<<<<<<< HEAD
-=======
-
-    def tokenize_lower(self) -> [str]:
-        return [token.lower() for token in RegexpTokenizer(r'\w+').tokenize(self.text)]
-
->>>>>>> refs/remotes/origin/master
 
     def tokenize_lower(self) -> [str]:
         return [token.lower() for token in RegexpTokenizer(r'\w+').tokenize(self.text)]
@@ -242,18 +235,6 @@ def main():
         file.close()
 
         webpage_text = parser.process_text(parser.all_text())
-<<<<<<< HEAD
-        tokenizer = Tokenizer(webpage_text)
-        # print(tokenizer.text_list)
-        # print(len(tokenizer.text_list), len(tokenizer.text_set))
-
-        for token in tokenizer.text_set:
-            index.add_file(token, path)
-            frequency = token_frequency_in_document(token, tokenizer.text_list)
-            index.add_occurences_temp(token, path, indices_info)
-            index.add_frequency(token, path, frequency)
-            index.add_length(token, path, len(tokenizer.text_list))
-=======
         title_text = parser.process_text(parser.all_title_text())
 
         # print(parser.all_text())
@@ -271,7 +252,6 @@ def main():
 
             index.add_length(token, path, len(tokenizer.text_list_lower))
             index.add_title_length(token, path, len(title_tokenizer.text_list_lower))
->>>>>>> refs/remotes/origin/master
 
         title_text = parser.process_text(parser.all_title_text())
 
