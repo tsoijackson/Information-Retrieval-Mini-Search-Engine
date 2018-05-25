@@ -77,6 +77,27 @@ class Database():
             self.add_file(token, file)
         self.index[token][file][scoreField] = score
 
+    def add_occurences_temp(self, token:str, file:str, indices_text:list):
+        # iterating through the list of lines
+        line_count = 0
+        offset_count = 0
+        for line in indices_text:
+            line_count += 1
+            line = line.lower()
+            if token in line:
+                offset_count = 0
+                stripped_line = line.strip(' \n')
+                for word in stripped_line.split():
+                    offset_count += 1
+                    if token == word:
+                        break
+        if token not in self.index:
+            self.add_token(token)
+        if file not in self.index[token]:
+            self.add_file(token, file)
+        self.index[token][file]['position'] = (line_count, offset_count)
+
+
 #Code that Formats the Index into a String Form
 class IndexFormatter():
     def __init__(self, object: dict):
@@ -180,8 +201,8 @@ def token_frequency_in_document(token:str, text_list: [str]) -> int:
             frequency += 1
     return frequency
 
-def tf(token_frequency:int, text_list_length:int) -> float:
-    return token_frequency / text_list_length
+def tf(token_frequency:int) -> float:
+    return 1+math.log(token_frequency)
 
 def documents_containing_token(token:str, database: Database.index) -> int:
     return len(database[token])
@@ -189,8 +210,8 @@ def documents_containing_token(token:str, database: Database.index) -> int:
 def idf(total_documents:int, documents_containing_token:int) -> float:
     return math.log(total_documents / (1 + documents_containing_token))
 
-def tfidf(token_frequency:int, text_list_length: int, total_docments:int, documents_containing_token:int) -> float:
-    return tf(token_frequency,text_list_length) * idf(total_docments,documents_containing_token)
+def tfidf(token_frequency:int, total_docments:int, documents_containing_token:int) -> float:
+    return tf(token_frequency) * idf(total_docments,documents_containing_token)
 
 def all_webpage_paths() -> [str]:
     result = []
@@ -259,7 +280,7 @@ def main():
     start = time()
     for token in index.index:
         for file in index.index[token]:
-            tf_idf = tfidf(index.index[token][file]['frequency'], index.index[token][file]['length'],
+            tf_idf = tfidf(index.index[token][file]['frequency'],
                            total_docments=len(webpage_paths),
                            documents_containing_token=documents_containing_token(token, index.index))
             index.add_score(token, file, 'tf-idf', tf_idf)
