@@ -6,4 +6,4 @@ in order to install all libraries needed for the program to run.
 Open the terminal and change directory into mysite. Then run: python manage.py runserver 
 Messages of the Django server starting should appear.
 
-Open up your web browser and vist: http://127.0.0.1:8000/home/
+Open up your web browser and vist: http://127.0.0.1:8000 or http://127.0.0.1:8000/home/
