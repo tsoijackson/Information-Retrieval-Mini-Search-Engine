@@ -33,13 +33,13 @@ def test():
 							print("---------------------------------")
 				
 
-with open("index.json", 'r') as f:
-	google_dict = json.load(f)
+# with open("index.json", 'r') as f:
+# 	google_dict = json.load(f)
 
-with open("WEBPAGES_RAW/bookkeeping.json", 'r') as f:
-	url_dict = json.load(f)
+# with open("WEBPAGES_RAW/bookkeeping.json", 'r') as f:
+# 	url_dict = json.load(f)
 
-user_input = input("Please enter a search: ")
+# user_input = input("Please enter a search: ")
 
 # Separate the query and normalize (lowercase all) it
 def processQuery(query:str) -> [str]:
@@ -91,4 +91,4 @@ def searchQuery(query:str, index:dict, bookkeeping:dict, maxlinks:int) -> [str]:
         print(len(result))                                               
         return result
 
-print(searchQuery(user_input, google_dict, url_dict, 10))
+# print(searchQuery(user_input, google_dict, url_dict, 10))
