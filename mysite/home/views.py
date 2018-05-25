@@ -2,17 +2,17 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from django.template import loader
 
-import sys
+import sys, json
 #importing mini search engine project folder
-sys.path.insert(0, sys.path[0].replace('\\mysite',''))
+sys.path.insert(0, sys.path[0].replace('\\mysite','')) # sys.path[0] =  /Information-Retrieval-Mini-Search-Engine/
 
-# sys.path[0] =  /Information-Retrieval-Mini-Search-Engine/
+import query
 print("HELLLOOOO")
 print(sys.path[0])
 
-import query
-
-open((sys.path[0]+'\\index.json'), 'r')
+INDEX_DICT = json.load(open((sys.path[0]+'\\index.json'), 'r'))
+BOOKKEEPING_DICT = json.load(open((sys.path[0]+'\\WEBPAGES_RAW\\bookkeeping.json'), 'r'))
+MAX_LINKS = 10
 
 # Create your views here.
 
@@ -22,12 +22,11 @@ def index(request):
 	if len(request.GET['searchBar']) > 0:
 		print('searching...')
 		queryString = request.GET['searchBar']
-		print(queryString)
+		print('queryString:', queryString)
 
-		#INSERT QUERY SEARCHING CODE HERE
-
-		searchResults = ['fano.ics.uci.edu/cites/Author/Murray-Sherk.html', 'link2', 'link3']
-		# End of QUERY SEARCH
+		# INSERT QUERY SEARCHING CODE HERE
+		searchResults = query.searchQuery(query=queryString, index=INDEX_DICT, bookkeeping=BOOKKEEPING_DICT, maxlinks=MAX_LINKS)
+		# END of QUERY SEARCH
 
 		linklist = write_html_link_anchors(searchResults)
 

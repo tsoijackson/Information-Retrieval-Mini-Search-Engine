@@ -1,12 +1,5 @@
 import json
 
-MAX_LINKS = 10
-INDEX_DICT = 1
-
-
-def load_index(filepath: str) -> dict:
-	json.load(open("index.json", 'r'))
-
 def test():
 	with open("index.json", 'r') as f:
 		google_dict = json.load(f)
@@ -40,12 +33,17 @@ def test():
 							print("---------------------------------")
 				
 
+# Separate the query and normalize (lowercase all) it
+def processQuery(query:str) -> [str]:
+	queryList = []
 
+	return queryList
 
 
 # Takes in query and returns the top 10 links
 def searchQuery(query:str, index:dict, bookkeeping:dict, maxlinks:int) -> [str]:
 	result = []
+	processQuery(query)
 
 
 	return result
