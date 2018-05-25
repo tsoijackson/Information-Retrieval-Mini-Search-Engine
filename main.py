@@ -274,7 +274,7 @@ def main():
 
             index.add_length(token, path, len(tokenizer.text_list_lower))
             index.add_title_length(token, path, len(title_tokenizer.text_list_lower))
-
+            index.add_occurences(token, path, indices_info)
         title_text = parser.process_text(parser.all_title_text())
 
         # print(parser.all_text())
