@@ -20,7 +20,7 @@ class Database():
         self.index = self.create_index()
 
     def create_index(self):
-        return json.load(open(self.index_path, 'r'))
+        return json.load(open(self.index_path, 'r', encoding='utf-8'))
 
     def clear_index(self):
         self.index = {}
@@ -29,7 +29,7 @@ class Database():
         file.close()
 
     def update_index(self):
-        file = open(self.index_path, 'w')
+        file = open(self.index_path, 'w', encoding='utf-8')
         file.write(IndexFormatter(self.index).dumps())
         file.close()
 
@@ -95,7 +95,7 @@ class Database():
             self.add_token(token)
         if file not in self.index[token]:
             self.add_file(token, file)
-        self.index[token][file]['position'] = (line_count, offset_count)
+        self.index[token][file]['position'] = [line_count, offset_count]
 
 
 #Code that Formats the Index into a String Form
@@ -169,7 +169,6 @@ class Parser():
         return result
 
     def all_header_text(self) -> str:
-        print('---header----')
         result = ""
         for header in self.soup.find_all(re.compile('^h[1-6]$')):
             if header.string != None:
@@ -240,7 +239,7 @@ def main():
     index = Database(BOOK_KEEPING_PATH, INDEX_PATH) #initialize inversed index
 
     webpage_paths = all_webpage_paths()
-    webpage_paths = webpage_paths[:400] #EDIT HOW MANY PATHS WANTED/COMMENT OUT IF RUNNING ALL FILES
+    webpage_paths = webpage_paths[0:400] #EDIT HOW MANY PATHS WANTED/COMMENT OUT IF RUNNING ALL FILES
     TOTAL_DOCUMENTS = len(webpage_paths)
     for path in webpage_paths: #6:15
 
@@ -252,7 +251,10 @@ def main():
         file_text = file.read()
         file.seek(0)
         indices_info = file.readlines()
-        print(indices_info[0])
+        first_line = indices_info[0]
+        incorrect_types =['\x89PNG\n']
+        if first_line in incorrect_types:
+            continue
         parser = Parser(file_text)
         file.close()
 
@@ -274,7 +276,7 @@ def main():
 
             index.add_length(token, path, len(tokenizer.text_list_lower))
             index.add_title_length(token, path, len(title_tokenizer.text_list_lower))
-
+            index.add_occurences(token, path, indices_info)
         title_text = parser.process_text(parser.all_title_text())
 
         # print(parser.all_text())
