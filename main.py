@@ -95,7 +95,7 @@ class Database():
             self.add_token(token)
         if file not in self.index[token]:
             self.add_file(token, file)
-        self.index[token][file]['position'] = (line_count, offset_count)
+        self.index[token][file]['position'] = [line_count, offset_count]
 
 
 #Code that Formats the Index into a String Form
