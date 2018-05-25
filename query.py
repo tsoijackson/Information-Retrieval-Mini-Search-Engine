@@ -1,5 +1,11 @@
 import json
 
+MAX_LINKS = 10
+INDEX_DICT = 1
+
+
+def load_index(filepath: str) -> dict:
+	json.load(open("index.json", 'r'))
 
 def test():
 	with open("index.json", 'r') as f:
@@ -35,3 +41,11 @@ def test():
 				
 
 
+
+
+# Takes in query and returns the top 10 links
+def searchQuery(query:str, index:dict, bookkeeping:dict, maxlinks:int) -> [str]:
+	result = []
+
+
+	return result

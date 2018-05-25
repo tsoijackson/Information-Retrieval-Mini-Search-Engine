@@ -5,8 +5,14 @@ from django.template import loader
 import sys
 #importing mini search engine project folder
 sys.path.insert(0, sys.path[0].replace('\\mysite',''))
+
+# sys.path[0] =  /Information-Retrieval-Mini-Search-Engine/
+print("HELLLOOOO")
+print(sys.path[0])
+
 import query
 
+open((sys.path[0]+'\\index.json'), 'r')
 
 # Create your views here.
 
