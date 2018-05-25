@@ -12,6 +12,12 @@
 
 	<!--Fontawesome CDN-->
 	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/all.css" integrity="sha384-DNOHZ68U8hZfKXOrtjWvjxusGo9WQnrNx2sqG0tfsghAvtVlRW3tvkXWZh58N9jp" crossorigin="anonymous">
+
+	<style>
+		a {font-size: 26px}
+		li {font-size: 26px}
+	</style>
+
 </head>
 <body>
 	<div class="container-fluid">
@@ -24,7 +30,6 @@
 					</div>
 					<div class="col-md-10 offset-md-1 text-center pb-3">
 						<form action="" method="get">
-							<!-- {% csrf_token %} -->
 							<input type="text" value="" name="searchBar" size="150"/>
 							<input type="submit" class="btn btn-info btn-lg" value="Search" name="searchBtn">
 						</form>
@@ -33,12 +38,9 @@
 			</div>
 
 
-			<div class="col-md-12">
+			<div class="col-md-12 font-weight-bold text-lg">
 				<ol>
 					{{links | safe}}
-					<li class="pt-2"><a href="#">hello</a></li>
-					<li class="pt-2">Tea</li>
-					<li class="pt-2">Milk</li>
 				</ol>
 			</div>
 
