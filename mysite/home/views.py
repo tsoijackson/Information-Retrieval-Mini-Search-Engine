@@ -20,7 +20,9 @@ def index(request):
 
 		#INSERT QUERY SEARCHING CODE HERE
 
-		searchResults = ['link1', 'link2', 'link3']
+		searchResults = ['fano.ics.uci.edu/cites/Author/Murray-Sherk.html', 'link2', 'link3']
+		# End of QUERY SEARCH
+
 		linklist = write_html_link_anchors(searchResults)
 
 		return render(request, 'home/index.html', {'links': linklist})
@@ -30,7 +32,7 @@ def index(request):
 def write_html_link_anchors(searchResults: [str]):
 	html = ''
 	for link in searchResults:
-		html += '<li class="pt-2 pb-2"><a href="{}">{}</a></li>'.format(link, link)
+		html += '<li class="pt-2 pb-1"><a href="{}">{}</a></li>'.format(link, link)
 	return html
 
 
