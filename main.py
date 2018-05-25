@@ -20,7 +20,7 @@ class Database():
         self.index = self.create_index()
 
     def create_index(self):
-        return json.load(open(self.index_path, 'r'))
+        return json.load(open(self.index_path, 'r', encoding='utf-8'))
 
     def clear_index(self):
         self.index = {}
@@ -29,7 +29,7 @@ class Database():
         file.close()
 
     def update_index(self):
-        file = open(self.index_path, 'w')
+        file = open(self.index_path, 'w', encoding='utf-8')
         file.write(IndexFormatter(self.index).dumps())
         file.close()
 
