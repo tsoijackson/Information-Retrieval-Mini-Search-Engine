@@ -169,7 +169,6 @@ class Parser():
         return result
 
     def all_header_text(self) -> str:
-        print('---header----')
         result = ""
         for header in self.soup.find_all(re.compile('^h[1-6]$')):
             if header.string != None:
@@ -240,7 +239,7 @@ def main():
     index = Database(BOOK_KEEPING_PATH, INDEX_PATH) #initialize inversed index
 
     webpage_paths = all_webpage_paths()
-    webpage_paths = webpage_paths[:400] #EDIT HOW MANY PATHS WANTED/COMMENT OUT IF RUNNING ALL FILES
+    webpage_paths = webpage_paths[0:400] #EDIT HOW MANY PATHS WANTED/COMMENT OUT IF RUNNING ALL FILES
     TOTAL_DOCUMENTS = len(webpage_paths)
     for path in webpage_paths: #6:15
 
@@ -252,7 +251,10 @@ def main():
         file_text = file.read()
         file.seek(0)
         indices_info = file.readlines()
-        print(indices_info[0])
+        first_line = indices_info[0]
+        incorrect_types =['\x89PNG\n']
+        if first_line in incorrect_types:
+            continue
         parser = Parser(file_text)
         file.close()
 
