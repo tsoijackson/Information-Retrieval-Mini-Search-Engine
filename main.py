@@ -77,7 +77,7 @@ class Database():
             self.add_file(token, file)
         self.index[token][file][scoreField] = score
 
-    def add_occurences_temp(self, token:str, file:str, indices_text:list):
+    def add_occurences(self, token:str, file:str, indices_text:list):
         # iterating through the list of lines
         line_count = 0
         offset_count = 0
@@ -250,8 +250,9 @@ def main():
         print('PATH:', path)
         file = open(path, 'r', encoding='utf-8')
         file_text = file.read()
+        file.seek(0)
         indices_info = file.readlines()
-        print(indices_info)
+        print(indices_info[0])
         parser = Parser(file_text)
         file.close()
 
