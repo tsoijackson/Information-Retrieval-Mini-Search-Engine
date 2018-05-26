@@ -6,6 +6,7 @@ import json
 from pprint import pprint
 import math
 from time import time
+from collections import defaultdict
 
 WEBPAGES_PATH = "WEBPAGES_RAW"
 BOOK_KEEPING_PATH = "WEBPAGES_RAW/bookkeeping.json"
@@ -97,6 +98,15 @@ class Database():
             self.add_file(token, file)
         self.index[token][file]['position'] = [line_count, offset_count]
 
+    def add_additionalweights(self, token:str, file:str, indices_text:list):
+        if token not in self.index:
+            self.add_token(token)
+        if file not in self.index[token]:
+            self.add_file(token, file)
+        self.index[token][file]['positional_weight'] = 0
+        self.index[token][file]['numterm_weight'] = 0
+        self.index[token][file]['header_weight'] = 0
+
 
 #Code that Formats the Index into a String Form
 class IndexFormatter():
@@ -124,9 +134,7 @@ class IndexFormatter():
 
 class IndexEncoder(json.JSONEncoder):
     def default(self, obj):
-        print('indexEncoder !!!!!!!!!!!!!!!!!!!!!!!!!!!!')
         if isinstance(obj, dict):
-            print('passed through!')
             return json.dumps('')
         else:
             return json.dumps(obj)
@@ -212,6 +220,36 @@ def idf(total_documents:int, documents_containing_token:int) -> float:
 def tfidf(token_frequency:int, total_docments:int, documents_containing_token:int) -> float:
     return tf(token_frequency) * idf(total_docments,documents_containing_token)
 
+
+# EC: calculate and manipulate the weight based on a tokens positional location
+def qterm_positional_weight(query_list,google_dict):
+    if(len(query_list) == 0):
+        return None
+    document_dic = dict(list)
+    for term in query_list:
+        for doc in google_dict[term]:
+            document_dic[doc].append([term,google_dict[term].position])
+    for key, values in document_dic.items():
+        if value > 1:
+            multiplier = 0
+            # same line receives 3x the score compared to the width
+
+
+
+
+
+
+
+
+
+
+
+
+# EC: calculate and manipulate the weight based on the type of header it is contained within
+def qterm_header_weight(query_list):
+
+
+
 def all_webpage_paths() -> [str]:
     result = []
     for root, dirs, files in os.walk(WEBPAGES_PATH):
@@ -251,6 +289,8 @@ def main():
         file_text = file.read()
         file.seek(0)
         indices_info = file.readlines()
+
+        # check to see if the files is an image
         first_line = indices_info[0]
         incorrect_types =['\x89PNG\n']
         if first_line in incorrect_types:
