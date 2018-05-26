@@ -10,7 +10,7 @@ import query
 print("HELLLOOOO")
 print(sys.path[0])
 
-INDEX_DICT = json.load(open((sys.path[0]+'\\index.json'), 'r'))
+INDEX_DICT = json.load(open((sys.path[0]+'\\index.json'), 'r', encoding='utf-8'))
 BOOKKEEPING_DICT = json.load(open((sys.path[0]+'\\WEBPAGES_RAW\\bookkeeping.json'), 'r'))
 MAX_LINKS = 10
 
