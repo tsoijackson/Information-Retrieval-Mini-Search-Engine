@@ -35,10 +35,3 @@ def write_html_link_anchors(searchResults: [str]):
 	for link in searchResults:
 		html += '<li class="pt-2 pb-1"><a href="{}">{}</a></li>'.format(link, link)
 	return html
-
-
-def request_page(request):
-	print((request.GET.get('mybtn')))
-	if(request.GET.get('mybtn')):
-		print(True)
-		print(request.GET.get('searchbar'))
