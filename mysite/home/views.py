@@ -2,16 +2,12 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from django.template import loader
 
-import sys, json
+import sys, json, os
 #importing mini search engine project folder
-sys.path.insert(0, sys.path[0].replace('\\mysite','')) # sys.path[0] =  /Information-Retrieval-Mini-Search-Engine/
+import home.main.query as query
 
-import query
-print("HELLLOOOO")
-print(sys.path[0])
-
-INDEX_DICT = json.load(open((sys.path[0]+'\\index.json'), 'r', encoding='utf-8'))
-BOOKKEEPING_DICT = json.load(open((sys.path[0]+'\\WEBPAGES_RAW\\bookkeeping.json'), 'r'))
+INDEX_DICT = json.load(open('home/main/index.json', 'r', encoding='utf-8'))
+BOOKKEEPING_DICT = json.load(open('home/main/bookkeeping.json', 'r'))
 MAX_LINKS = 10
 
 # Create your views here.
