@@ -37,8 +37,3 @@ def write_html_link_anchors(searchResults: [str]):
 	return html
 
 
-def request_page(request):
-	print((request.GET.get('mybtn')))
-	if(request.GET.get('mybtn')):
-		print(True)
-		print(request.GET.get('searchbar'))
