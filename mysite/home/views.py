@@ -35,3 +35,5 @@ def write_html_link_anchors(searchResults: [str]):
 	for link in searchResults:
 		html += '<li class="pt-2 pb-1"><a href="{}">{}</a></li>'.format(link, link)
 	return html
+
+
