@@ -33,13 +33,6 @@ def test():
 							print("---------------------------------")
 				
 
-# with open("index.json", 'r') as f:
-# 	google_dict = json.load(f)
-
-# with open("WEBPAGES_RAW/bookkeeping.json", 'r') as f:
-# 	url_dict = json.load(f)
-
-# user_input = input("Please enter a search: ")
 
 # Separate the query and normalize (lowercase all) it
 def processQuery(query:str) -> [str]:
@@ -61,34 +54,35 @@ def highest_scores(index: dict, split_words):
         scores.sort(key = int, reverse = True)
         return scores[0:10]
 
-        
+
+
+
 # Takes in query and returns the top 10 links
 def searchQuery(query:str, index:dict, bookkeeping:dict, maxlinks:int) -> [str]:
         result = []
         split_words = processQuery(query)
         high_scores = highest_scores(index, split_words)
         files = []
-        for word in index:
-                for file in index[word]:
-                        for terms in index[word].values():
-                                if maxlinks != 0:
-                                        for score in high_scores:
-                                                for user_word in split_words:
-                                                        if user_word == word:
-                                                                if terms["tf-idf"] == score:
-                                                                        if file not in files:
-                                                                                files.append(file)
-                                                                                maxlinks -= 1
-        for url in bookkeeping:
-                for file in files:
+                
+
+        for user_word in split_words:
+                for score in high_scores:
+                        for word, value in index.items():
+                                if user_word == word:
+                                        for file, terms in value.items():
+                                                if terms["tf-idf"] == score:
+                                                        if file not in files and maxlinks != 0:
+                                                                files.append(file)
+                                                                maxlinks -= 1
+
+
+        for file in files:               
+                for url in bookkeeping:
                         if file[13:] == url:
                                 if bookkeeping[url] not in result:
-                                        result.append("https://" + bookkeeping[url])
+                                        result.append(bookkeeping[url])
                                                                                 
                         
                                 
-                                        
-        print(len(result))                                               
         return result
 
-# print(searchQuery(user_input, google_dict, url_dict, 10))
