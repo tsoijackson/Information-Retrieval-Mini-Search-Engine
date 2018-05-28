@@ -363,7 +363,7 @@ def webpage_paths_sorting_key(s: str):
 
 def pages_to_ignore() -> set:
     result = set()
-    ignore = ['0/0', '0/438', '39/373']
+    ignore = ['0/0', '0/438', '39/373', '35/269', '19/336', '55/433']
     for page in ignore:
         page = "WEBPAGES_RAW/" + page
         result.add(page)
@@ -375,7 +375,7 @@ def main():
     index = Database(BOOK_KEEPING_PATH, INDEX_PATH) #initialize inversed index
 
     webpage_paths = all_webpage_paths()
-    webpage_paths = webpage_paths[0:500] #EDIT HOW MANY PATHS WANTED/COMMENT OUT IF RUNNING ALL FILES
+    #webpage_paths = webpage_paths[0:500] #EDIT HOW MANY PATHS WANTED/COMMENT OUT IF RUNNING ALL FILES
     TOTAL_DOCUMENTS = len(webpage_paths)
     for path in webpage_paths:
 
