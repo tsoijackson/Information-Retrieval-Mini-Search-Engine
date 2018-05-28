@@ -1,37 +1,13 @@
 import json
 
-def test():
-	with open("index.json", 'r') as f:
-		google_dict = json.load(f)
 
-	with open("WEBPAGES_RAW/bookkeeping.json", 'r') as f:
-		url_dict = json.load(f)
-
-	count = [10, 10, 10]
-	for word in google_dict:
-		for x in google_dict[word]:
-			if word == "informatics":
-				if count[0] != 0:
-					count[0] -= 1
-					for url in url_dict:
-						if x[13:] == url:
-							print("URLs for informatics: " + url_dict[url] + '\n')
-							print("---------------------------------")
-			elif word == "mondego":
-				if count[1] != 0:
-					count[1] -= 1
-					for url in url_dict:
-						if x[13:] == url:
-							print("URL for mondego: " + url_dict[url] + '\n')
-							print("---------------------------------")
-			elif word == "irvine":
-				if count[2] != 0:
-					count[2] -= 1
-					for url in url_dict:
-						if x[13:] == url:
-							print("URL for irvine: " + url_dict[url] + '\n')
-							print("---------------------------------")
-				
+##with open("index.json", 'r') as f:
+##        google_dict = json.load(f)
+##
+##with open("bookkeeping.json", 'r') as f:
+##        url_dict = json.load(f)
+##
+##user_input = input("PLease enter your search: ")
 
 
 # Separate the query and normalize (lowercase all) it
@@ -42,14 +18,12 @@ def processQuery(query:str) -> [str]:
                 queryList.append(word.lower())
         return queryList
 
-### returns highest tf-idf score of all the query words
+### returns 10 highest tf-idf scores of all the query words
 def highest_scores(index: dict, split_words):
         scores = []
-        for word in index:
-                for user_word in split_words:
-                        if user_word == word:
-                                for terms in index[word].values():
-                                        scores.append(terms["tf-idf"])
+        for user_word in split_words:
+                for terms in index[user_word].values():
+                        scores.append(terms["tf-idf"])
         scores = [float(x) for x in scores]
         scores.sort(key = int, reverse = True)
         return scores[0:10]
@@ -59,7 +33,7 @@ def highest_scores(index: dict, split_words):
 
 # Takes in query and returns the top 10 links
 def searchQuery(query:str, index:dict, bookkeeping:dict, maxlinks:int) -> [str]:
-        result = []
+        results = []
         split_words = processQuery(query)
         high_scores = highest_scores(index, split_words)
         files = []
@@ -77,12 +51,13 @@ def searchQuery(query:str, index:dict, bookkeeping:dict, maxlinks:int) -> [str]:
 
 
         for file in files:               
-                for url in bookkeeping:
-                        if file[13:] == url:
-                                if bookkeeping[url] not in result:
-                                        result.append(bookkeeping[url])
+                for url_file in bookkeeping:
+                        if file[13:] == url_file:
+                                if bookkeeping[url_file] not in results:
+                                        results.append(bookkeeping[url_file])
                                                                                 
                         
                                 
-        return result
+        return results
 
+#print(searchQuery(user_input, google_dict, url_dict, 10))
