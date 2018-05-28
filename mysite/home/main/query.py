@@ -51,10 +51,17 @@ def searchQuery(query:str, index:dict, bookkeeping:dict, maxlinks:int) -> [str]:
 
 
         for file in files:               
+<<<<<<< HEAD
                 for url_file in bookkeeping:
                         if file[13:] == url_file:
                                 if bookkeeping[url_file] not in results:
                                         results.append(bookkeeping[url_file])
+=======
+                for url in bookkeeping:
+                        if file[13:] == url:
+                                if bookkeeping[url] not in result:
+                                        result.append("https://" + bookkeeping[url])
+>>>>>>> 7c78cd75056a121729b85d43e3aa7da545231b55
                                                                                 
                         
                                 
