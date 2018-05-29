@@ -1,12 +1,11 @@
 import json
+from .linguisticprocessor import LinguisticProcessor
 
 # Separate the query and normalize (lowercase all) it
 def processQuery(query:str) -> [str]:
         queryList = []
         split_query = query.split(" ")
-        for word in split_query:
-                queryList.append(word.lower())
-        return queryList
+        return LinguisticProcessor(split_query).process()
 
 ### returns 10 highest tf-idf scores of all the query words
 def highest_scores(index: dict, split_words):
@@ -23,7 +22,7 @@ def highest_scores(index: dict, split_words):
 # Takes in query and returns the top 10 links
 def searchQuery(query:str, index:dict, bookkeeping:dict, maxlinks:int) -> [str]:
         results = []
-        split_words = processQuery(query)
+        split_words = processQuery(query); print(split_words)
         high_scores = highest_scores(index, split_words)
         files = []
                 
