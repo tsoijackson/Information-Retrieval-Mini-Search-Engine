@@ -3,10 +3,9 @@ from nltk.tokenize import RegexpTokenizer
 import re
 import os
 import json
-from pprint import pprint
 import math
 from time import time
-from collections import defaultdict
+from mysite.home.main.linguisticprocessor import LinguisticProcessor
 
 WEBPAGES_PATH = "WEBPAGES_RAW"
 BOOK_KEEPING_PATH = "WEBPAGES_RAW/bookkeeping.json"
@@ -122,14 +121,6 @@ class IndexFormatter():
         result += "}"
         return result
 
-class IndexEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, dict):
-            return json.dumps('')
-        else:
-            return json.dumps(obj)
-
-
 class Parser():
     __slots__ = ('soup')
     def __init__(self, html:str):
@@ -144,19 +135,6 @@ class Parser():
         for i in items:
             text = text.replace(i, ' ')
         text = re.sub(' +', ' ', text)  # removes multiple spaces
-        text = self.remove_html_code(text)
-        return text
-
-    # Some of the unstructure html will contain coding segments which
-    # need to be removed as much as possible from the text
-    def remove_html_code(self, text:str) -> str:
-        # text = re.sub('#[^{]*{[^}]*}', ' ', text)  # removes css header
-        # text = re.sub('if[ ]?[(][^)]*[)]', ' ', text)  # removes code if ()
-        # text = re.sub('[^ ]* = function[(][)] {.*}', ' ', text)  # removes code function = ()
-        # text = re.sub('function[ ][^(]*[(][)][ ]?{[^}]*}', ' ', text) # removes code function () { }
-        # text = re.sub('var [^ ]* = [^(]*[(][^)]*[)]', ' ', text)  # removes code var = ()
-        # text = re.sub('[\\].*[\\]["]', ' ', text) # removes code \  \"
-        # text = re.sub('catch[(]e[)][ ]?{[^}]*}', ' ', text) # remvoes code catch(e) {}
         return text
 
     def all_title_text(self) -> str:
@@ -164,13 +142,6 @@ class Parser():
         for title in self.soup.find_all('title'):
             if title.string != None:
                 result += title.string + ' '
-        return result
-
-    def all_header_text(self) -> str:
-        result = ""
-        for header in self.soup.find_all(re.compile('^h[1-6]$')):
-            if header.string != None:
-                result += header.string + ' '
         return result
 
     def all_text(self):
@@ -375,7 +346,7 @@ def main():
     index = Database(BOOK_KEEPING_PATH, INDEX_PATH) #initialize inversed index
 
     webpage_paths = all_webpage_paths()
-    #webpage_paths = webpage_paths[0:500] #EDIT HOW MANY PATHS WANTED/COMMENT OUT IF RUNNING ALL FILES
+    webpage_paths = webpage_paths[0:100] #EDIT HOW MANY PATHS WANTED/COMMENT OUT IF RUNNING ALL FILES
     TOTAL_DOCUMENTS = len(webpage_paths)
     for path in webpage_paths:
 
@@ -399,7 +370,6 @@ def main():
         webpage_text = parser.process_text(parser.all_text())
         title_text = parser.process_text(parser.all_title_text())
 
-        # print(parser.all_text())
 
         tokenizer = Tokenizer(webpage_text)
         title_tokenizer = Tokenizer(title_text)
@@ -416,9 +386,6 @@ def main():
             index.add_title_length(token, path, len(title_tokenizer.text_list_lower))
             index.add_occurences(token, path, indices_info)
 
-        title_text = parser.process_text(parser.all_title_text())
-
-        # print(parser.all_text())
     start = time()
     for token in index.index:
         for file in index.index[token]:
