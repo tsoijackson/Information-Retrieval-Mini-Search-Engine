@@ -55,8 +55,11 @@ def qterm_withindocument(query_term, current_doc):
 
 def tfidf_reset(query_term, google_dict):
     for query in query_term:
-        for docs in google_dict[query]:
-            google_dict[query][docs]["tf-idf"] = google_dict[query][docs]["tf-idf-temp"]
+        if query not in google_dict:
+            continue
+        else:
+            for docs in google_dict[query]:
+                google_dict[query][docs]["tf-idf"] = google_dict[query][docs]["tf-idf-temp"]
 
 # EC: calculate and manipulate the weight based on a tokens positional location
 def qterm_positional_weight(query_list,google_dict):
@@ -163,8 +166,8 @@ def highest_scores(index: dict, split_words):
 def searchQuery(query:str, index:dict, bookkeeping:dict, maxlinks:int) -> [str]:
 	results = []
 	split_words = processQuery(query); print(split_words)
-	qterm_header_weight(split_words,index)
-	qterm_positional_weight(split_words,index)
+	# qterm_header_weight(split_words,index)
+	# qterm_positional_weight(split_words,index)
 	high_scores = highest_scores(index, split_words)
 	files = []
 	for user_word in split_words:
