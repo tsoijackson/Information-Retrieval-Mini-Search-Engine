@@ -77,19 +77,19 @@ class Database():
             self.add_file(token, file)
         self.index[token][file][scoreField] = score
 
-    def add_occurences(self, token:str, file:str, indices_text:list):
+    def add_occurences(self, token:str, og_token:str, file:str, indices_text:list):
         # iterating through the list of lines
         line_count = 0
         offset_count = 0
         for line in indices_text:
             line_count += 1
             line = line.lower()
-            if token in line:
+            if og_token in line:
                 offset_count = 0
                 stripped_line = line.strip(' \n')
                 for word in stripped_line.split():
                     offset_count += 1
-                    if token == word:
+                    if og_token == word:
                         break
         if token not in self.index:
             self.add_token(token)
@@ -148,19 +148,24 @@ class Parser():
         return self.soup.get_text()
 
 class Tokenizer():
-    __slots__ = ('text', 'text_list_lower', 'text_set_lower')
+    __slots__ = ('text', 'text_list_lower', 'text_set_lower', 'original_token')
     def __init__(self, text:str):
         self.text = text
-        self.text_list_lower = self.tokenize()
-        self.text_set_lower = set(self.text_list_lower)
+        self.original_token = []
+        self.text_list_lower = self.tokenize() # lowered and stemmed
+        self.text_set_lower = set(self.text_list_lower) # lowered and stemmed
 
     def tokenize(self) -> [str]:
         tokens = RegexpTokenizer(r'\w+').tokenize(self.text)
+        self.original_token = tokens
         return LinguisticProcessor(tokens).process()
 
-
-    def tokenize_lower(self) -> [str]:
-        return [token.lower() for token in RegexpTokenizer(r'\w+').tokenize(self.text)]
+    def combine_lists(self):
+        final_list = []
+        for num in range(len(self.text_list_lower)):
+            # modified, original version
+            final_list.append([self.text_list_lower[num], self.original_token[num].lower()])
+        return final_list
 
 def token_frequency_in_document(token:str, text_list: [str]) -> int:
     frequency = 0
@@ -208,7 +213,7 @@ def main():
     index = Database(BOOK_KEEPING_PATH, INDEX_PATH) #initialize inversed index
 
     webpage_paths = all_webpage_paths()
-    webpage_paths = webpage_paths[0:100] #EDIT HOW MANY PATHS WANTED/COMMENT OUT IF RUNNING ALL FILES
+    webpage_paths = webpage_paths[0:50] #EDIT HOW MANY PATHS WANTED/COMMENT OUT IF RUNNING ALL FILES
     TOTAL_DOCUMENTS = len(webpage_paths)
     for path in webpage_paths:
 
@@ -231,30 +236,32 @@ def main():
 
         webpage_text = parser.process_text(parser.all_text())
         tokenizer = Tokenizer(webpage_text)
+        combined_list = tokenizer.combine_lists()
 
-        for token in tokenizer.text_set_lower:
-            index.add_file(token, path)
-            text_frequency = token_frequency_in_document(token, tokenizer.text_list_lower)
-            index.add_frequency(token, path, text_frequency)
-            index.add_length(token, path, len(tokenizer.text_list_lower))
-            index.add_occurences(token, path, indices_info)
+        # modified, original version
+        for token in combined_list:
+            index.add_file(token[0], path)
+            text_frequency = token_frequency_in_document(token[0], tokenizer.text_list_lower)
+            index.add_frequency(token[0], path, text_frequency)
+            index.add_length(token[0], path, len(tokenizer.text_list_lower))
+            index.add_occurences(token[0], token[1], path, indices_info)
 
-    start = time()
-    for token in index.index:
-        for file in index.index[token]:
-            current_idf = idf(total_documents=len(webpage_paths),
-            documents_containing_token=documents_containing_token(token, index.index))
-            current_tf_idf = tfidf(index.index[token][file]['frequency'],
-                           total_documents=len(webpage_paths),
-                           documents_containing_token=documents_containing_token(token, index.index))
-            index.add_score(token, file, 'tf-idf', current_tf_idf)
-            index.add_score(token, file, 'tf-idf-temp', 0)
-            index.add_score(token, file, 'idf', current_idf)
-    print('adding score :', time() - start)
+        start = time()
+        for token in index.index:
+            for file in index.index[token]:
+                current_idf = idf(total_documents=len(webpage_paths),
+                documents_containing_token=documents_containing_token(token, index.index))
+                current_tf_idf = tfidf(index.index[token][file]['frequency'],
+                               total_documents=len(webpage_paths),
+                               documents_containing_token=documents_containing_token(token, index.index))
+                index.add_score(token, file, 'tf-idf', current_tf_idf)
+                index.add_score(token, file, 'tf-idf-temp', 0)
+                index.add_score(token, file, 'idf', current_idf)
+        print('adding score :', time() - start)
 
-    index.update_index()
-    print('total documents:', TOTAL_DOCUMENTS)
-    print(len(index.index))
+        index.update_index()
+        print('total documents:', TOTAL_DOCUMENTS)
+        print(len(index.index))
 
 
 #Use this to MANUALLY CLEAR INDEX.JSON when experimenting

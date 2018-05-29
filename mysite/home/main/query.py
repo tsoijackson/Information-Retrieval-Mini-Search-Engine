@@ -185,5 +185,5 @@ def searchQuery(query:str, index:dict, bookkeeping:dict, maxlinks:int) -> [str]:
 	            if bookkeeping[url_file] not in results:
 	                results.append("https://" + bookkeeping[url_file])
 
-	tfidf_reset(split_words,index)
+	# tfidf_reset(split_words,index)
 	return results
