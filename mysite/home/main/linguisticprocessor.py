@@ -10,6 +10,7 @@ class LinguisticProcessor():
 
     def process(self):
         self.lowercase()
+        self.stemming()
         return self.text
 
     def lowercase(self):
@@ -17,10 +18,12 @@ class LinguisticProcessor():
             self.text[n] = word.lower()
 
     def stemming(self):
-        pass
+        stemmer = PorterStemmer()
+        for n,word in enumerate(self.text):
+            self.text[n] = stemmer.stem(word)
 
 def test():
-    l1 = ['Cars', 'Are', 'Super', 'Fast', 'In', 'Cities']
+    l1 = ['Cars', 'Are', 'Super', 'Fast', 'In', 'Cities', 'Computers', 'Computer', 'Laptop']
     s1 = set(l1)
 
     print("l1:", l1, ',s1:', s1)
