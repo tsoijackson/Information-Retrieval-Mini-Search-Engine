@@ -148,16 +148,16 @@ class Parser():
         return self.soup.get_text()
 
 class Tokenizer():
-    __slots__ = ('text', 'text_list', 'text_list_lower', 'text_set', 'text_set_lower')
+    __slots__ = ('text', 'text_list_lower', 'text_set_lower')
     def __init__(self, text:str):
         self.text = text
-        self.text_list = self.tokenize()
-        self.text_list_lower = self.tokenize_lower()
-        self.text_set = set(self.text_list)
+        self.text_list_lower = self.tokenize()
         self.text_set_lower = set(self.text_list_lower)
 
     def tokenize(self) -> [str]:
-        return RegexpTokenizer(r'\w+').tokenize(self.text)
+        tokens = RegexpTokenizer(r'\w+').tokenize(self.text)
+        return LinguisticProcessor(tokens).process()
+
 
     def tokenize_lower(self) -> [str]:
         return [token.lower() for token in RegexpTokenizer(r'\w+').tokenize(self.text)]
@@ -368,22 +368,13 @@ def main():
         file.close()
 
         webpage_text = parser.process_text(parser.all_text())
-        title_text = parser.process_text(parser.all_title_text())
-
-
         tokenizer = Tokenizer(webpage_text)
-        title_tokenizer = Tokenizer(title_text)
 
         for token in tokenizer.text_set_lower:
             index.add_file(token, path)
             text_frequency = token_frequency_in_document(token, tokenizer.text_list_lower)
-            title_frequency = token_frequency_in_document(token, title_tokenizer.text_list_lower)
-
             index.add_frequency(token, path, text_frequency)
-            index.add_title_frequency(token, path, title_frequency)
-
             index.add_length(token, path, len(tokenizer.text_list_lower))
-            index.add_title_length(token, path, len(title_tokenizer.text_list_lower))
             index.add_occurences(token, path, indices_info)
 
     start = time()
